@@ -28,7 +28,13 @@
     "index.js"
   ],
   "dependencies": {
-    "@rdfjs/types": "*"
+    "n3": "^1.16.3",
+    "rdf-terms": "^1.9.1",
+    "rdf-string": "^1.6.2",
+    "readable-stream": "^4.3.0",
+    "@rdfjs/types": "*",
+    "@types/n3": "^1.10.4",
+    "@types/readable-stream": "^2.3.15"
   },
   "pre-commit": [
     "build",
@@ -36,22 +42,21 @@
     "test"
   ],
   "devDependencies": {
-    "@rubensworks/eslint-config": "^1.0.0",
+    "@rubensworks/eslint-config": "^1.1.0",
     "@types/jest": "^27.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "arrayify-stream": "^2.0.1",
     "coveralls": "^3.0.0",
-    "eslint": "^7.9.0",
-    "eslint-config-es": "^3.23.0",
-    "eslint-import-resolver-typescript": "^2.3.0",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jest": "^24.0.2",
-    "eslint-plugin-tsdoc": "^0.2.7",
-    "eslint-plugin-unused-imports": "^1.0.0",
+    "eslint": "^8.32.0",
     "jest": "^27.0.0",
     "jest-rdf": "^1.5.0",
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
+    "event-emitter-promisify": "^1.1.0",
+    "rdf-data-factory": "^1.1.1",
+    "rdf-quad": "^1.5.0",
+    "streamify-array": "^1.0.1",
     "ts-jest": "^27.0.0",
     "typescript": "^4.0.2"
   },
