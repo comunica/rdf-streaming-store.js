@@ -14,14 +14,14 @@ import { PendingStreamsIndex } from './PendingStreamsIndex';
  *
  * WARNING: `end()` MUST be called at some point, otherwise all `match` streams will remain unended.
  */
-export class StreamingStore<Q extends RDF.BaseQuad = RDF.Quad>
+export class StreamingStore<Q extends RDF.BaseQuad = RDF.Quad, S extends RDF.Store<Q> = Store<Q>>
 implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
-  protected readonly store: RDF.Store<Q>;
+  protected readonly store: S;
   protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
   protected ended = false;
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
-    this.store = store;
+    this.store = <S> store;
   }
 
   /**
@@ -78,7 +78,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   /**
    * The internal store with all imported quads.
    */
-  public getStore(): RDF.Store<Q> {
+  public getStore(): S {
     return this.store;
   }
 }
