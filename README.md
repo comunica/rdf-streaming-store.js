@@ -14,7 +14,7 @@ immutable.
 
 **WARNING**: `end()` MUST be called at some point, otherwise all `match` streams will remain unended.
 
-If using TypeScript, it is recommended to use this in conjunction with [`@types/rdf-js`](https://www.npmjs.com/package/@types/rdf-js).
+If using TypeScript, it is recommended to use this in conjunction with [`@rdfjs/types`](https://www.npmjs.com/package/@rdfjs/types).
 
 ## Installation
 
