@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.0.1"></a>
+## [v1.0.1](https://github.com/comunica/rdf-streaming-store.js/compare/v1.0.0...v1.0.1) - 2023-03-06
+
+### Fixed
+* [Fix error when store is ended during an import stream](https://github.com/comunica/rdf-streaming-store.js/commit/7cbb3f278a6b5b3f9030cda17d50071921b7da32)
+
 <a name="v1.0.0"></a>
 ## [v1.0.0] - 2023-01-25
 
