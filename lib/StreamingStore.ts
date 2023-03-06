@@ -42,7 +42,9 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected importToListeners(stream: RDF.Stream<Q>): void {
     stream.on('data', (quad: Q) => {
       for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-        pendingStream.push(quad);
+        if (!this.ended) {
+          pendingStream.push(quad);
+        }
       }
     });
   }

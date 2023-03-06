@@ -3,6 +3,7 @@ import arrayifyStream from 'arrayify-stream';
 import { promisifyEventEmitter } from 'event-emitter-promisify/dist';
 import { Store } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
+import { Readable } from 'readable-stream';
 import { StreamingStore } from '../lib/StreamingStore';
 const quad = require('rdf-quad');
 const streamifyArray = require('streamify-array');
@@ -37,6 +38,26 @@ describe('StreamingStore', () => {
     store.end();
     expect(() => store.import(<any>undefined))
       .toThrow('Attempted to import into an ended StreamingStore');
+  });
+
+  it('gracefully handles ending during slow imports', async() => {
+    const readStream = store.match();
+
+    const importStream = new Readable({ objectMode: true });
+    importStream._read = () => {
+      setImmediate(() => {
+        importStream.push(quad('s1', 'p1', 'o1'));
+        importStream.push(null);
+      });
+    };
+    store.import(importStream);
+    store.end();
+    await new Promise(resolve => importStream.on('end', resolve));
+
+    readStream.on('data', () => {
+      // Void reads
+    });
+    await new Promise(resolve => readStream.on('end', resolve));
   });
 
   it('handles one match after end', async() => {
