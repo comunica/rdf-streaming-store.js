@@ -36,6 +36,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     // Mark all pendingStreams as ended.
     for (const pendingStream of this.pendingStreams.allStreams) {
       pendingStream.push(null);
+      (<any> pendingStream)._pipeSource.unpipe();
     }
   }
 
@@ -73,6 +74,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
       stream = storeResult.pipe(pendingStream, { end: false });
+      (<any> stream)._pipeSource = storeResult;
     }
     return stream;
   }

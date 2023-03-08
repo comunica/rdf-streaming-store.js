@@ -57,7 +57,34 @@ describe('StreamingStore', () => {
     readStream.on('data', () => {
       // Void reads
     });
+    const errorHandler = jest.fn();
+    readStream.on('error', errorHandler);
     await new Promise(resolve => readStream.on('end', resolve));
+
+    expect(errorHandler).not.toHaveBeenCalled();
+  });
+
+  it('gracefully handles ending during very slow imports', async() => {
+    const readStream = store.match();
+
+    const importStream = new Readable({ objectMode: true });
+    importStream._read = () => {
+      // Do nothing
+    };
+    store.import(importStream);
+    store.end();
+
+    readStream.on('data', () => {
+      // Void reads
+    });
+    const errorHandler = jest.fn();
+    readStream.on('error', errorHandler);
+    await new Promise(resolve => readStream.on('end', resolve));
+
+    importStream.push(quad('s1', 'p1', 'o1'));
+    importStream.push(null);
+
+    expect(errorHandler).not.toHaveBeenCalled();
   });
 
   it('handles one match after end', async() => {
