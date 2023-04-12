@@ -45,6 +45,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
         if (!this.ended) {
           pendingStream.push(quad);
+          pendingStream.emit('quad', quad);
         }
       }
     });
