@@ -1,6 +1,6 @@
 {
   "name": "rdf-streaming-store",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A read-only RDF/JS store that allows parallel data lookup and insertion.",
   "keywords": [
     "rdf",
