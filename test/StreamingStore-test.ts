@@ -465,4 +465,15 @@ describe('StreamingStore', () => {
         quad('s4', 'p4', 'o', 'g'),
       ]);
   });
+
+  it('handles duplicates in import (set-semantics)', async() => {
+    const match = store.match();
+    await promisifyEventEmitter(store.import(streamifyArray([
+      quad('s1', 'p1', 'o1'),
+      quad('s1', 'p1', 'o1'),
+    ])));
+    store.end();
+
+    expect(await arrayifyStream(match)).toEqualRdfQuadArray(await arrayifyStream(store.getStore().match()));
+  });
 });

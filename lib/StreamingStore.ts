@@ -41,13 +41,20 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   }
 
   protected importToListeners(stream: RDF.Stream<Q>): void {
-    stream.on('data', (quad: Q) => {
-      for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-        if (!this.ended) {
-          pendingStream.push(quad);
-          pendingStream.emit('quad', quad);
+    stream.on('data', async(quad: Q) => {
+      const matchStream = this.store.match(quad.subject, quad.predicate, quad.object, quad.graph);
+      matchStream.once('data', () => {
+        matchStream.removeAllListeners();
+      });
+
+      matchStream.once('end', () => {
+        for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
+          if (!this.ended) {
+            pendingStream.push(quad);
+            pendingStream.emit('quad', quad);
+          }
         }
-      }
+      });
     });
   }
 
