@@ -40,22 +40,42 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     }
   }
 
-  protected importToListeners(stream: RDF.Stream<Q>): void {
-    stream.on('data', async(quad: Q) => {
+  protected importToListeners(stream: RDF.Stream<Q>): RDF.Stream<Q> {
+    const storeImportStream = new PassThrough({ objectMode: true });
+
+    let streamEnded = false;
+    let processing = 0;
+    stream.on('data', async (quad: Q) => {
+      console.log(quad.subject.value, quad.predicate.value, quad.object.value, quad.graph.value);
+      processing++;
       const matchStream = this.store.match(quad.subject, quad.predicate, quad.object, quad.graph);
       matchStream.once('data', () => {
+        console.log('match found');
         matchStream.removeAllListeners();
       });
 
       matchStream.once('end', () => {
-        for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-          if (!this.ended) {
+        console.log('matchSteam ended');
+        processing--;
+        if (!this.ended) {
+          storeImportStream.push(quad);
+          for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
             pendingStream.push(quad);
             pendingStream.emit('quad', quad);
           }
         }
+        if (processing === 0 && streamEnded) {
+          storeImportStream.end();
+        }
       });
     });
+
+    stream.on('end', () => {
+      console.log('stream ended');
+      streamEnded = true;
+    });
+
+    return storeImportStream;
   }
 
   public import(stream: RDF.Stream<Q>): EventEmitter {
@@ -63,8 +83,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       throw new Error('Attempted to import into an ended StreamingStore');
     }
 
-    this.importToListeners(stream);
-    return this.store.import(stream);
+    return this.store.import(this.importToListeners(stream));
   }
 
   public match(
