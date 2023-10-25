@@ -40,13 +40,12 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     }
   }
 
-  private onReadable(stream: RDF.Stream<Q>, storeImportStream: PassThrough): void {
+  protected importToListeners(stream: RDF.Stream<Q>, storeImportStream: PassThrough): void {
     let streamEnded = false;
     stream.once('readable', async() => {
       let quad: Q | null = stream.read();
       while (quad) {
         const staticQuad = quad;
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
         await new Promise<void>(resolve => {
           const matchStream = this.store.match(
             staticQuad.subject,
@@ -55,15 +54,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
             staticQuad.graph,
           );
 
-          matchStream.once('data', () => {
-            matchStream.removeAllListeners();
-            if (streamEnded) {
-              storeImportStream.end();
-            }
-            resolve();
-          });
-
-          matchStream.once('end', () => {
+          const handleEnd = (): void => {
             if (!this.ended) {
               storeImportStream.push(staticQuad);
               for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(staticQuad)) {
@@ -71,16 +62,24 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
                 pendingStream.emit('quad', staticQuad);
               }
             }
-            if (streamEnded) {
-              storeImportStream.end();
-            }
+            resolve();
+          };
+
+          matchStream.once('data', () => {
+            matchStream.removeListener('end', handleEnd);
             resolve();
           });
+
+          matchStream.once('end', handleEnd);
         });
 
         quad = stream.read();
       }
-      this.onReadable(stream, storeImportStream);
+      if (streamEnded) {
+        storeImportStream.end();
+        return;
+      }
+      this.importToListeners(stream, storeImportStream);
     });
 
     stream.on('end', () => {
@@ -88,20 +87,17 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     });
   }
 
-  protected importToListeners(stream: RDF.Stream<Q>): RDF.Stream<Q> {
-    const storeImportStream = new PassThrough({ objectMode: true });
-
-    this.onReadable(stream, storeImportStream);
-
-    return storeImportStream;
-  }
-
   public import(stream: RDF.Stream<Q>): EventEmitter {
     if (this.ended) {
       throw new Error('Attempted to import into an ended StreamingStore');
     }
 
-    return this.store.import(this.importToListeners(stream));
+    const storeImportStream = new PassThrough({ objectMode: true });
+    stream.on('error', error => storeImportStream.emit('error', error));
+
+    this.importToListeners(stream, storeImportStream);
+
+    return this.store.import(storeImportStream);
   }
 
   public match(
