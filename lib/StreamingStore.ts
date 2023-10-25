@@ -40,40 +40,58 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     }
   }
 
-  protected importToListeners(stream: RDF.Stream<Q>): RDF.Stream<Q> {
-    const storeImportStream = new PassThrough({ objectMode: true });
-
+  private onReadable(stream: RDF.Stream<Q>, storeImportStream: PassThrough): void {
     let streamEnded = false;
-    let processing = 0;
-    stream.on('data', async (quad: Q) => {
-      console.log(quad.subject.value, quad.predicate.value, quad.object.value, quad.graph.value);
-      processing++;
-      const matchStream = this.store.match(quad.subject, quad.predicate, quad.object, quad.graph);
-      matchStream.once('data', () => {
-        console.log('match found');
-        matchStream.removeAllListeners();
-      });
+    stream.once('readable', async() => {
+      let quad: Q | null = stream.read();
+      while (quad) {
+        const staticQuad = quad;
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        await new Promise<void>(resolve => {
+          const matchStream = this.store.match(
+            staticQuad.subject,
+            staticQuad.predicate,
+            staticQuad.object,
+            staticQuad.graph,
+          );
 
-      matchStream.once('end', () => {
-        console.log('matchSteam ended');
-        processing--;
-        if (!this.ended) {
-          storeImportStream.push(quad);
-          for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-            pendingStream.push(quad);
-            pendingStream.emit('quad', quad);
-          }
-        }
-        if (processing === 0 && streamEnded) {
-          storeImportStream.end();
-        }
-      });
+          matchStream.once('data', () => {
+            matchStream.removeAllListeners();
+            if (streamEnded) {
+              storeImportStream.end();
+            }
+            resolve();
+          });
+
+          matchStream.once('end', () => {
+            if (!this.ended) {
+              storeImportStream.push(staticQuad);
+              for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(staticQuad)) {
+                pendingStream.push(staticQuad);
+                pendingStream.emit('quad', staticQuad);
+              }
+            }
+            if (streamEnded) {
+              storeImportStream.end();
+            }
+            resolve();
+          });
+        });
+
+        quad = stream.read();
+      }
+      this.onReadable(stream, storeImportStream);
     });
 
     stream.on('end', () => {
-      console.log('stream ended');
       streamEnded = true;
     });
+  }
+
+  protected importToListeners(stream: RDF.Stream<Q>): RDF.Stream<Q> {
+    const storeImportStream = new PassThrough({ objectMode: true });
+
+    this.onReadable(stream, storeImportStream);
 
     return storeImportStream;
   }
