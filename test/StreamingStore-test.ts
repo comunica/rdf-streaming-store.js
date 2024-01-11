@@ -3,7 +3,7 @@ import arrayifyStream from 'arrayify-stream';
 import { promisifyEventEmitter } from 'event-emitter-promisify/dist';
 import { Store } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
-import { Readable } from 'readable-stream';
+import { PassThrough, Readable } from 'readable-stream';
 import { StreamingStore } from '../lib/StreamingStore';
 const quad = require('rdf-quad');
 const streamifyArray = require('streamify-array');
@@ -464,5 +464,56 @@ describe('StreamingStore', () => {
       .toBeRdfIsomorphic([
         quad('s4', 'p4', 'o', 'g'),
       ]);
+  });
+
+  it('handles duplicates in import (set-semantics)', async() => {
+    const match = store.match();
+    await promisifyEventEmitter(store.import(streamifyArray([
+      quad('s1', 'p1', 'o1'),
+      quad('s1', 'p1', 'o1'),
+    ])));
+    store.end();
+
+    expect(await arrayifyStream(match)).toEqualRdfQuadArray(
+      [ quad('s1', 'p1', 'o1') ],
+    );
+  });
+
+  it('handles duplicates in import (set-semantics) during slow import', async() => {
+    const match = store.match();
+
+    const importStream = new Readable({ objectMode: true });
+    importStream._read = () => {
+      setImmediate(() => {
+        importStream.push(quad('s1', 'p1', 'o1'));
+      });
+      setImmediate(() => {
+        importStream.push(quad('s1', 'p1', 'o1'));
+      });
+      setImmediate(() => {
+        importStream.push(null);
+      });
+    };
+    store.import(importStream);
+    await new Promise(resolve => importStream.on('end', resolve));
+    store.end();
+
+    expect(await arrayifyStream(match)).toEqualRdfQuadArray(
+      [ quad('s1', 'p1', 'o1') ],
+    );
+  });
+
+  it('handles errors in import', async() => {
+    const importStream = new PassThrough({ objectMode: true });
+    const returnStream = store.import(importStream);
+    const error = new Error('myError');
+    const callback = jest.fn();
+
+    returnStream.on('error', callback);
+    importStream.emit('error', error);
+
+    expect(callback).toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith(error);
+    store.end();
   });
 });
