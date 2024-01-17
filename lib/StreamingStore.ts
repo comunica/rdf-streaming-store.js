@@ -40,65 +40,14 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     }
   }
 
-  /**
-   * This function will read the quad stream in an on-demand fashion, and will check if the quads already exist in the
-   * store. If they don't, they will be pushed into the storeImportStream, and the matching pendingStreams.
-   * @param stream A quad stream.
-   * @param storeImportStream A stream to import the quads into the store.
-   */
-  protected importToListeners(stream: RDF.Stream<Q>, storeImportStream: PassThrough): void {
-    let streamEnded = false;
-    stream.once('readable', async() => {
-      let quad: Q | null = stream.read();
-      while (quad) {
-        const staticQuad = quad;
-        await new Promise<void>(resolve => {
-          // Match the new quad with the store.
-          const matchStream = this.store.match(
-            staticQuad.subject,
-            staticQuad.predicate,
-            staticQuad.object,
-            staticQuad.graph,
-          );
-
-          // If the StreamingStore hasn't ended, we add the quad to the storeImportStream and the corresponding
-          // pendingStreams and resolve to handle the next quad.
-          const handleEnd = (): void => {
-            if (!this.ended) {
-              storeImportStream.push(staticQuad);
-              for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(staticQuad)) {
-                pendingStream.push(staticQuad);
-                pendingStream.emit('quad', staticQuad);
-              }
-            }
-            resolve();
-          };
-
-          // If the matchStream has a result, the quad already exists.
-          // We remove the 'end' listener and continue to the next quad.
-          matchStream.once('data', () => {
-            matchStream.removeListener('end', handleEnd);
-            resolve();
-          });
-
-          // If the matchStream has ended (and this listener isn't removed), the quad doesn't exist yet.
-          // So we call the handleEnd function.
-          matchStream.once('end', handleEnd);
-        });
-
-        quad = stream.read();
+  protected importToListeners(stream: RDF.Stream<Q>): void {
+    stream.on('data', (quad: Q) => {
+      for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
+        if (!this.ended) {
+          pendingStream.push(quad);
+          pendingStream.emit('quad', quad);
+        }
       }
-      // If the stream has ended, all quads will be read from the quad stream, so we can end the storeImportStream.
-      if (streamEnded) {
-        storeImportStream.end();
-        return;
-      }
-      // If the stream hasn't ended, we recursively call this function to wait for the stream to become readable again.
-      this.importToListeners(stream, storeImportStream);
-    });
-
-    stream.on('end', () => {
-      streamEnded = true;
     });
   }
 
@@ -107,12 +56,8 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       throw new Error('Attempted to import into an ended StreamingStore');
     }
 
-    const storeImportStream = new PassThrough({ objectMode: true });
-    stream.on('error', error => storeImportStream.emit('error', error));
-
-    this.importToListeners(stream, storeImportStream);
-
-    return this.store.import(storeImportStream);
+    this.importToListeners(stream);
+    return this.store.import(stream);
   }
 
   public match(
