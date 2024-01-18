@@ -48,7 +48,9 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
    */
   protected importToListeners(stream: RDF.Stream<Q>, storeImportStream: PassThrough): void {
     let streamEnded = false;
-    stream.once('readable', async() => {
+    let streamReadable = false;
+    stream.on('readable', async() => {
+      streamReadable = true;
       let quad: Q | null = stream.read();
       while (quad) {
         const staticQuad = quad;
@@ -91,14 +93,17 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // If the stream has ended, all quads will be read from the quad stream, so we can end the storeImportStream.
       if (streamEnded) {
         storeImportStream.end();
-        return;
       }
-      // If the stream hasn't ended, we recursively call this function to wait for the stream to become readable again.
-      this.importToListeners(stream, storeImportStream);
+      streamReadable = false;
     });
 
     stream.on('end', () => {
-      streamEnded = true;
+      // If the stream is still readable let the on readable function end the `storeImportStream`, else do it now.
+      if (streamReadable) {
+        streamEnded = true;
+      } else {
+        storeImportStream.end();
+      }
     });
   }
 
