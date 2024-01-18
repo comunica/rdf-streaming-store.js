@@ -479,6 +479,29 @@ describe('StreamingStore', () => {
     );
   });
 
+  it('handles duplicates in import (set-semantics) with slow store', async() => {
+    (<Store>(<any>store).store).import = stream => {
+      stream.on('data', data => {
+        setTimeout(() => {
+          (<Store>(<any>store).store).add(data);
+        }, 50);
+      });
+
+      return stream;
+    };
+
+    const match = store.match();
+    await promisifyEventEmitter(store.import(streamifyArray([
+      quad('s1', 'p1', 'o1'),
+      quad('s1', 'p1', 'o1'),
+    ])));
+    store.end();
+
+    expect(await arrayifyStream(match)).toEqualRdfQuadArray(
+      [ quad('s1', 'p1', 'o1') ],
+    );
+  });
+
   it('handles duplicates in import (set-semantics) during slow import', async() => {
     const match = store.match();
 
