@@ -5,6 +5,15 @@ import type { Readable } from 'readable-stream';
 import { PassThrough } from 'readable-stream';
 import { PendingStreamsIndex } from './PendingStreamsIndex';
 
+interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
+  countQuads: (
+    subject: RDF.Term | null,
+    predicate: RDF.Term | null,
+    object: RDF.Term | null,
+    graph: RDF.Term | null,
+  ) => number;
+}
+
 /**
  * A StreamingStore allows data lookup and insertion to happen in parallel.
  * Concretely, this means that `match()` calls happening before `import()` calls, will still consider those triples that
@@ -14,7 +23,7 @@ import { PendingStreamsIndex } from './PendingStreamsIndex';
  *
  * WARNING: `end()` MUST be called at some point, otherwise all `match` streams will remain unended.
  */
-export class StreamingStore<Q extends RDF.BaseQuad = RDF.Quad, S extends RDF.Store<Q> = Store<Q>>
+export class StreamingStore<Q extends RDF.BaseQuad = RDF.Quad, S extends ILocalStore<Q> = Store<Q>>
 implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected readonly store: S;
   protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
@@ -42,8 +51,13 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
 
   protected importToListeners(stream: RDF.Stream<Q>): void {
     stream.on('data', (quad: Q) => {
-      for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-        if (!this.ended) {
+      if (!this.ended && !this.store.countQuads(
+        quad.subject,
+        quad.predicate,
+        quad.object,
+        quad.graph,
+      )) {
+        for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
           pendingStream.push(quad);
           pendingStream.emit('quad', quad);
         }
