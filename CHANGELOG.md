@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.1.3"></a>
+## [v1.1.3](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.2...v1.1.3) - 2024-02-06
+
+### Fixed
+* [Fix duplicate triples being emitted multiple times](https://github.com/comunica/rdf-streaming-store.js/commit/4d0d540389d021136095a671de90163cc9f0e0d5)
+
 <a name="v1.1.2"></a>
 ## [v1.1.2](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.1...v1.1.2) - 2024-01-17
 
