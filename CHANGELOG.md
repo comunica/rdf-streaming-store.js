@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.1.4"></a>
+## [v1.1.4](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.3...v1.1.4) - 2024-02-20
+
+### Fixed
+* [Fix duplicate quads during parallel import and match](https://github.com/comunica/rdf-streaming-store.js/commit/5c46be0ac4186c08234405cd2e08ba3dc57d9a2a)
+
 <a name="v1.1.3"></a>
 ## [v1.1.3](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.2...v1.1.3) - 2024-02-06
 
