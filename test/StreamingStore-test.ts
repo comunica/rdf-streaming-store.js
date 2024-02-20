@@ -503,6 +503,24 @@ describe('StreamingStore', () => {
     );
   });
 
+  it('handles parallel import and match', async() => {
+    const importStream = new Readable({ objectMode: true });
+    importStream._read = () => {
+      importStream.push(quad('s1', 'p1', 'o1'));
+      importStream.push(null);
+    };
+    store.import(importStream);
+
+    const match = store.match();
+    const listener = jest.fn();
+    match.on('data', listener);
+
+    await new Promise(resolve => importStream.on('end', resolve));
+    store.end();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   it('handles errors in import', async() => {
     const importStream = new PassThrough({ objectMode: true });
     const returnStream = store.import(importStream);

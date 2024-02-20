@@ -58,8 +58,10 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
         quad.graph,
       )) {
         for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-          pendingStream.push(quad);
-          pendingStream.emit('quad', quad);
+          if ((<any> pendingStream).isInitialized) {
+            pendingStream.push(quad);
+            pendingStream.emit('quad', quad);
+          }
         }
       }
     });
@@ -90,6 +92,16 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
       stream = storeResult.pipe(pendingStream, { end: false });
       (<any> stream)._pipeSource = storeResult;
+
+      // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.
+      // This is necessary to avoid duplicate quads cases where match() is called but not yet read, an import is done,
+      // and only then the match() stream is read.
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      const readOld = storeResult._read;
+      storeResult._read = (size: number) => {
+        (<any> pendingStream).isInitialized = true;
+        readOld.call(storeResult, size);
+      };
     }
     return stream;
   }
