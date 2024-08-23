@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v1.1.5"></a>
+## [v1.1.5](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.4...v1.1.5) - 2024-08-23
+
+### Fixed
+* [Fix race condition when pending stream ends before store stream](https://github.com/comunica/rdf-streaming-store.js/commit/de73725d0d294f247ae02bcd078e01cb2d458648)
+
 <a name="v1.1.4"></a>
 ## [v1.1.4](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.3...v1.1.4) - 2024-02-20
 
