@@ -1,8 +1,7 @@
 import type { EventEmitter } from 'events';
 import type * as RDF from '@rdfjs/types';
 import { Store } from 'n3';
-import type { Readable } from 'readable-stream';
-import { PassThrough } from 'readable-stream';
+import { Readable, PassThrough } from 'readable-stream';
 import { PendingStreamsIndex } from './PendingStreamsIndex';
 
 interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
@@ -45,7 +44,6 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     // Mark all pendingStreams as ended.
     for (const pendingStream of this.pendingStreams.allStreams) {
       pendingStream.push(null);
-      (<any> pendingStream)._pipeSource.unpipe();
     }
   }
 
@@ -65,6 +63,14 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
         }
       }
     });
+  }
+
+  protected static async * concatStreams(readables: Readable[]): AsyncIterableIterator<any> {
+    for (const readable of readables) {
+      for await (const chunk of readable) {
+        yield chunk;
+      }
+    }
   }
 
   public import(stream: RDF.Stream<Q>): EventEmitter {
@@ -90,7 +96,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // The new pendingStream remains open, until the store is ended.
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
-      stream = storeResult.pipe(pendingStream, { end: false });
+      stream = Readable.from(StreamingStore.concatStreams([ storeResult, pendingStream ]));
       (<any> stream)._pipeSource = storeResult;
 
       // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.

@@ -12,5 +12,8 @@ module.exports = {
     ],
     rules: {
         'no-implicit-coercion': 'off'
-    }
+    },
+    globals: {
+        'AsyncIterableIterator': true,
+    },
 };

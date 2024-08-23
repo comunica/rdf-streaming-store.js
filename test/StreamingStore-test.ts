@@ -515,8 +515,9 @@ describe('StreamingStore', () => {
     const listener = jest.fn();
     match.on('data', listener);
 
-    await new Promise(resolve => importStream.on('end', resolve));
+    const p = new Promise(resolve => match.on('end', resolve));
     store.end();
+    await p;
 
     expect(listener).toHaveBeenCalledTimes(1);
   });
@@ -533,5 +534,24 @@ describe('StreamingStore', () => {
     expect(callback).toHaveBeenCalled();
     expect(callback).toHaveBeenCalledWith(error);
     store.end();
+  });
+
+  it('handles pending stream ending before store stream', async() => {
+    const importStream = new Readable({ objectMode: true });
+    importStream._read = () => {
+      importStream.push(quad('s1', 'p1', 'o1'));
+      importStream.push(null);
+    };
+    store.import(importStream);
+    await new Promise(resolve => importStream.on('end', resolve));
+
+    const match = store.match();
+    const listener = jest.fn();
+    match.on('data', listener);
+
+    store.end();
+    await new Promise(resolve => match.on('end', resolve));
+
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });
