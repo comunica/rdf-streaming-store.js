@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.0.0"></a>
+## [v2.0.0](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.5...v2.0.0) - 2025-01-08
+
+### BREAKING CHANGES
+* [Update to rdf-data-factory v2](https://github.com/comunica/rdf-streaming-store.js/commit/332f393e3cce430d269cbb0183a2b89b8b9fdc76)
+    This includes a bump to @rdfjs/types@2.0.0, which requires TypeScript 5 and Node 14+
+
 <a name="v1.1.5"></a>
 ## [v1.1.5](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.4...v1.1.5) - 2024-08-23
 
