@@ -29,8 +29,8 @@
   ],
   "dependencies": {
     "n3": "^1.16.3",
-    "rdf-terms": "^1.9.1",
-    "rdf-string": "^1.6.2",
+    "rdf-terms": "^2.0.0",
+    "rdf-string": "^2.0.0",
     "readable-stream": "^4.3.0",
     "@rdfjs/types": "*",
     "@types/n3": "^1.10.4",
@@ -50,12 +50,12 @@
     "coveralls": "^3.0.0",
     "eslint": "^8.32.0",
     "jest": "^29.0.0",
-    "jest-rdf": "^1.5.0",
+    "jest-rdf": "^2.0.0",
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^1.2.2",
     "event-emitter-promisify": "^1.1.0",
-    "rdf-data-factory": "^1.1.1",
-    "rdf-quad": "^1.5.0",
+    "rdf-data-factory": "^2.0.1",
+    "rdf-quad": "^2.0.0",
     "streamify-array": "^1.0.1",
     "ts-jest": "^29.0.0",
     "ts-loader": "^9.3.1",
@@ -97,5 +97,6 @@
   },
   "resolutions": {
     "@types/rdf-js": "4.0.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
