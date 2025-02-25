@@ -42,7 +42,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
    *
    * This will make sure that all running and future `match` calls will end,
    * and all next `import` calls to this store will throw an error.
-   * It will also emit and "end" event on the
+   * It will also emit and "end" event on the statusEventEmitter.
    */
   public end(): void {
     this.ended = true;
