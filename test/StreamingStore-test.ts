@@ -554,4 +554,17 @@ describe('StreamingStore', () => {
 
     expect(listener).toHaveBeenCalledTimes(1);
   });
+
+  it('handle the reporting of the ending of stream', () => {
+    expect(store.hasEnded()).toBe(false);
+    store.end();
+    expect(store.hasEnded()).toBe(true);
+  });
+
+  it('should emit an event end when the store has ended', () => {
+    const spy = jest.spyOn(store.statusEventEmitter, 'emit');
+    store.end();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenLastCalledWith('end');
+  });
 });
