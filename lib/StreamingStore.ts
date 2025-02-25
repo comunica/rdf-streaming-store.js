@@ -1,8 +1,10 @@
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import type * as RDF from '@rdfjs/types';
 import { Store } from 'n3';
 import { Readable, PassThrough } from 'readable-stream';
 import { PendingStreamsIndex } from './PendingStreamsIndex';
+
+type ListenerCallback = () => void;
 
 interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
   countQuads: (
@@ -27,10 +29,21 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected readonly store: S;
   protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
   protected ended = false;
-  public readonly statusEventEmitter: EventEmitter = new EventEmitter();
+  protected listeners: ListenerCallback[] = [];
+  public statusEventEmitter: EventEmitter | undefined;
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
     this.store = <S>store;
+  }
+
+  public addEndListener(callback: ListenerCallback): void {
+    this.listeners.push(callback);
+  }
+
+  private emitEndListener(): void {
+    for (const listener of this.listeners) {
+      listener();
+    }
   }
 
   public hasEnded(): boolean {
@@ -51,7 +64,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     for (const pendingStream of this.pendingStreams.allStreams) {
       pendingStream.push(null);
     }
-    this.statusEventEmitter.emit('end');
+    this.emitEndListener();
   }
 
   protected importToListeners(stream: RDF.Stream<Q>): void {

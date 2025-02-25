@@ -128,7 +128,7 @@ store.end();
 const store = new StreamingStore();
 // will return false
 store.hasEnded();
-store.statusEventEmitter.on("end", ()=>{
+store.addEndListener(() => {
   console.log("store has ended")
 });
 

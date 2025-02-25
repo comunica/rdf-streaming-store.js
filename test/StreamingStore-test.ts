@@ -562,9 +562,27 @@ describe('StreamingStore', () => {
   });
 
   it('should emit an event end when the store has ended', () => {
-    const spy = jest.spyOn(store.statusEventEmitter, 'emit');
+    const callback = jest.fn().mockResolvedValueOnce('');
+    const callback2 = jest.fn().mockReturnValueOnce('');
+
+    store.addEndListener(callback);
+    store.addEndListener(callback2);
+
     store.end();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenLastCalledWith('end');
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback2).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw given a callback trowing', () => {
+    const callback = jest.fn().mockResolvedValueOnce('');
+    const callback2 = jest.fn().mockImplementation(() => {
+      throw new Error('callback error');
+    });
+
+    store.addEndListener(callback);
+    store.addEndListener(callback2);
+
+    expect(() => store.end()).toThrowError('callback error');
   });
 });
