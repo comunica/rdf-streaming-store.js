@@ -126,15 +126,19 @@ store.end();
 
 ```typescript
 const store = new StreamingStore();
-// will return false
+// Will return false
 store.hasEnded();
 store.addEndListener(() => {
-  console.log("store has ended")
+  console.log("store has ended");
 });
 
-// an end event will be propagated to the `store.statusEventEmitter` event emitter
+store.addEndListener(() => {
+  console.log("store has ended second call");
+});
+
+// All the listener will be called in the order they have been added
 store.end();
-// will return true
+// Will return true
 store.hasEnded();
 ```
 
