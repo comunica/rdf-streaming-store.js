@@ -136,7 +136,7 @@ store.addEndListener(() => {
   console.log("store has ended second call");
 });
 
-// All the listener will be called in the order they have been added
+// All the listeners will be called in the order they have been added
 store.end();
 // Will return true
 store.hasEnded();
