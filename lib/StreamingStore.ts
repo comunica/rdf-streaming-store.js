@@ -40,7 +40,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     this.listeners.push(callback);
   }
 
-  private emitEndListener(): void {
+  private emitEndEvent(): void {
     for (const listener of this.listeners) {
       listener();
     }
@@ -64,7 +64,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     for (const pendingStream of this.pendingStreams.allStreams) {
       pendingStream.push(null);
     }
-    this.emitEndListener();
+    this.emitEndEvent();
   }
 
   protected importToListeners(stream: RDF.Stream<Q>): void {
