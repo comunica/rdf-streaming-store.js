@@ -54,7 +54,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
    *
    * This will make sure that all running and future `match` calls will end,
    * and all next `import` calls to this store will throw an error.
-   * It will run all the listeners added with `addEndListener.`
+   * It will run all the listeners added with `addEndListener`.
    */
   public end(): void {
     this.ended = true;
