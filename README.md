@@ -126,8 +126,8 @@ store.end();
 
 ```typescript
 const store = new StreamingStore();
-// Will return false
-store.hasEnded();
+
+store.hasEnded(); // Will return false
 store.addEndListener(() => {
   console.log("store has ended");
 });
@@ -136,10 +136,10 @@ store.addEndListener(() => {
   console.log("store has ended second call");
 });
 
-// All the listeners will be called in the order they have been added
-store.end();
-// Will return true
-store.hasEnded();
+
+store.end(); // All the listeners will be called in the order they have been added
+
+store.hasEnded(); // Will return true
 ```
 
 ## License
