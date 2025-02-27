@@ -4,6 +4,8 @@ import { Store } from 'n3';
 import { Readable, PassThrough } from 'readable-stream';
 import { PendingStreamsIndex } from './PendingStreamsIndex';
 
+type ListenerCallback = () => void;
+
 interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
   countQuads: (
     subject: RDF.Term | null,
@@ -27,9 +29,24 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected readonly store: S;
   protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
   protected ended = false;
+  protected listeners: ListenerCallback[] = [];
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
     this.store = <S> store;
+  }
+
+  public addEndListener(listener: ListenerCallback): void {
+    this.listeners.push(listener);
+  }
+
+  private emitEndEvent(): void {
+    for (const listener of this.listeners) {
+      listener();
+    }
+  }
+
+  public hasEnded(): boolean {
+    return this.ended;
   }
 
   /**
@@ -37,6 +54,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
    *
    * This will make sure that all running and future `match` calls will end,
    * and all next `import` calls to this store will throw an error.
+   * It will run all the listeners added with `addEndListener`.
    */
   public end(): void {
     this.ended = true;
@@ -45,6 +63,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     for (const pendingStream of this.pendingStreams.allStreams) {
       pendingStream.push(null);
     }
+    this.emitEndEvent();
   }
 
   protected importToListeners(stream: RDF.Stream<Q>): void {

@@ -554,4 +554,35 @@ describe('StreamingStore', () => {
 
     expect(listener).toHaveBeenCalledTimes(1);
   });
+
+  it('handle the reporting of the ending of the store', () => {
+    expect(store.hasEnded()).toBe(false);
+    store.end();
+    expect(store.hasEnded()).toBe(true);
+  });
+
+  it('should execute the listenner when the store end', () => {
+    const callback = jest.fn().mockResolvedValueOnce('');
+    const callback2 = jest.fn().mockReturnValueOnce('');
+
+    store.addEndListener(callback);
+    store.addEndListener(callback2);
+
+    store.end();
+
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(callback2).toHaveBeenCalledTimes(1);
+  });
+
+  it('should throw given a listenner throw', () => {
+    const callback = jest.fn().mockResolvedValueOnce('');
+    const callback2 = jest.fn().mockImplementation(() => {
+      throw new Error('callback error');
+    });
+
+    store.addEndListener(callback);
+    store.addEndListener(callback2);
+
+    expect(() => store.end()).toThrowError('callback error');
+  });
 });

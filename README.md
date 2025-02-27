@@ -122,6 +122,25 @@ store.import(streamifyArray([
 // Since we mark the store as ended, the returnStream will print `Done!`
 store.end();
 ```
+## Determining if the store has ended
+
+```typescript
+const store = new StreamingStore();
+
+store.hasEnded(); // Will return false
+store.addEndListener(() => {
+  console.log("store has ended");
+});
+
+store.addEndListener(() => {
+  console.log("store has ended second call");
+});
+
+
+store.end(); // All the listeners will be called in the order they have been added
+
+store.hasEnded(); // Will return true
+```
 
 ## License
 This software is written by Maarten Vandenbrande and [Ruben Taelman](https://rubensworks.net/).
