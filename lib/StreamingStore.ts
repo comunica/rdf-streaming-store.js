@@ -124,7 +124,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const readOld = storeResult._read;
       storeResult._read = (size: number) => {
-        (<any>pendingStream).isInitialized = true;
+        (<any> pendingStream).isInitialized = true;
         readOld.call(storeResult, size);
       };
     }
