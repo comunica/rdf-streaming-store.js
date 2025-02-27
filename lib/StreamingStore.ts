@@ -30,7 +30,6 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
   protected ended = false;
   protected listeners: ListenerCallback[] = [];
-  public statusEventEmitter: EventEmitter | undefined;
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
     this.store = <S>store;
