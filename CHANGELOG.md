@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.1.0"></a>
+## [v2.1.0](https://github.com/comunica/rdf-streaming-store.js/compare/v2.0.0...v2.1.0) - 2025-02-27
+
+### Added
+* [Add methods to check if store has ended](https://github.com/comunica/rdf-streaming-store.js/commit/8ad2927c15dcb03ac8683c215c239236589972d7)
+
 <a name="v2.0.0"></a>
 ## [v2.0.0](https://github.com/comunica/rdf-streaming-store.js/compare/v1.1.5...v2.0.0) - 2025-01-08
 
