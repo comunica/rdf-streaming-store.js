@@ -35,8 +35,8 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     this.store = <S>store;
   }
 
-  public addEndListener(callback: ListenerCallback): void {
-    this.listeners.push(callback);
+  public addEndListener(listener: ListenerCallback): void {
+    this.listeners.push(listener);
   }
 
   private emitEndEvent(): void {
@@ -54,7 +54,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
    *
    * This will make sure that all running and future `match` calls will end,
    * and all next `import` calls to this store will throw an error.
-   * It will also emit an "end" event on the statusEventEmitter attribute.
+   * It will run all the listeners added with `addEndListener.`
    */
   public end(): void {
     this.ended = true;
