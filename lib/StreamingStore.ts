@@ -75,9 +75,14 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
         quad.graph,
       )) {
         for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
+          /**
+           * The pendingStream emits 'quad' events even before it is initialized.
+           * This allows us to detect when matching quads are added to the store,
+           * without having to consume the stream returned by the `match` method.
+           */
+          pendingStream.emit('quad', quad);
           if ((<any> pendingStream).isInitialized) {
             pendingStream.push(quad);
-            pendingStream.emit('quad', quad);
           }
         }
       }
@@ -116,6 +121,9 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
       stream = Readable.from(StreamingStore.concatStreams([ storeResult, pendingStream ]));
+      pendingStream.on('quad', quad => {
+        stream.emit('quad', quad);
+      });
       (<any> stream)._pipeSource = storeResult;
 
       // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.
