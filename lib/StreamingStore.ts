@@ -29,7 +29,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected ended = false;
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
-    this.store = <S>store;
+    this.store = <S> store;
   }
 
   /**
@@ -57,7 +57,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       )) {
         for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
           pendingStream.emit('quad', quad);
-          if ((<any>pendingStream).isInitialized) {
+          if ((<any> pendingStream).isInitialized) {
             pendingStream.push(quad);
           }
         }
@@ -101,7 +101,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       pendingStream.on('quad', quad => {
         stream.emit('quad', quad);
       });
-      (<any>stream)._pipeSource = storeResult;
+      (<any> stream)._pipeSource = storeResult;
 
       // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.
       // This is necessary to avoid duplicate quads cases where match() is called but not yet read, an import is done,
