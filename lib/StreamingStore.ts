@@ -29,7 +29,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   protected ended = false;
 
   public constructor(store: RDF.Store<Q> = new Store<Q>()) {
-    this.store = <S> store;
+    this.store = <S>store;
   }
 
   /**
@@ -56,9 +56,9 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
         quad.graph,
       )) {
         for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
-          if ((<any> pendingStream).isInitialized) {
+          pendingStream.emit('quad', quad);
+          if ((<any>pendingStream).isInitialized) {
             pendingStream.push(quad);
-            pendingStream.emit('quad', quad);
           }
         }
       }
@@ -96,8 +96,12 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // The new pendingStream remains open, until the store is ended.
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
+
       stream = Readable.from(StreamingStore.concatStreams([ storeResult, pendingStream ]));
-      (<any> stream)._pipeSource = storeResult;
+      pendingStream.on('quad', quad => {
+        stream.emit('quad', quad);
+      });
+      (<any>stream)._pipeSource = storeResult;
 
       // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.
       // This is necessary to avoid duplicate quads cases where match() is called but not yet read, an import is done,
@@ -105,7 +109,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const readOld = storeResult._read;
       storeResult._read = (size: number) => {
-        (<any> pendingStream).isInitialized = true;
+        (<any>pendingStream).isInitialized = true;
         readOld.call(storeResult, size);
       };
     }

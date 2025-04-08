@@ -1,4 +1,5 @@
 import 'jest-rdf';
+import type * as RDF from '@rdfjs/types';
 import arrayifyStream from 'arrayify-stream';
 import { promisifyEventEmitter } from 'event-emitter-promisify/dist';
 import { Store } from 'n3';
@@ -553,5 +554,30 @@ describe('StreamingStore', () => {
     await new Promise(resolve => match.on('end', resolve));
 
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('should emit a quad event when new matching quads are imported to the store', async() => {
+    await promisifyEventEmitter(store.import(streamifyArray([
+      quad('s1', 'p1', 'o1'),
+      quad('s2', 'p2', 'o2'),
+    ])));
+
+    const stream = store.match(DF.namedNode('s1'));
+    const quads: RDF.Quad[] = [];
+    stream.on('quad', importedQuad => {
+      quads.push(importedQuad);
+    });
+
+    await promisifyEventEmitter(store.import(streamifyArray([
+      quad('s1', 'p3', 'o3'),
+      quad('s4', 'p4', 'o4'),
+    ])));
+
+    store.end();
+    expect(quads).toStrictEqual(
+      [
+        quad('s1', 'p3', 'o3'),
+      ],
+    );
   });
 });
