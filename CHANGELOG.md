@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+<a name="v2.1.1"></a>
+## [v2.1.1](https://github.com/comunica/rdf-streaming-store.js/compare/v2.1.0...v2.1.1) - 2025-04-08
+
+### Fixed
+* [Fix quad event not being emitted anymore](https://github.com/comunica/rdf-streaming-store.js/commit/95f477ea0e7acce59aa9acdecc6121d65d447060)
+
 <a name="v2.1.0"></a>
 ## [v2.1.0](https://github.com/comunica/rdf-streaming-store.js/compare/v2.0.0...v2.1.0) - 2025-02-27
 
