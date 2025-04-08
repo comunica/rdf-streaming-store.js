@@ -96,7 +96,6 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // The new pendingStream remains open, until the store is ended.
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
-
       stream = Readable.from(StreamingStore.concatStreams([ storeResult, pendingStream ]));
       pendingStream.on('quad', quad => {
         stream.emit('quad', quad);
@@ -109,7 +108,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       const readOld = storeResult._read;
       storeResult._read = (size: number) => {
-        (<any>pendingStream).isInitialized = true;
+        (<any> pendingStream).isInitialized = true;
         readOld.call(storeResult, size);
       };
     }
