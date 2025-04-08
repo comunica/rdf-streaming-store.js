@@ -75,6 +75,11 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
         quad.graph,
       )) {
         for (const pendingStream of this.pendingStreams.getPendingStreamsForQuad(quad)) {
+          /**
+           * The pendingStream emits 'quad' events even before it is initialized.
+           * This allows us to detect when matching quads are added to the store,
+           * without having to consume the stream returned by the `match` method.
+           */
           pendingStream.emit('quad', quad);
           if ((<any> pendingStream).isInitialized) {
             pendingStream.push(quad);
