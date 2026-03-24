@@ -600,7 +600,7 @@ describe('StreamingStore', () => {
     expect(callback2).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw given a listenner throw', () => {
+  it('should throw given a listener throw', () => {
     const callback = jest.fn().mockResolvedValueOnce('');
     const callback2 = jest.fn().mockImplementation(() => {
       throw new Error('callback error');
@@ -609,6 +609,6 @@ describe('StreamingStore', () => {
     store.addEndListener(callback);
     store.addEndListener(callback2);
 
-    expect(() => store.end()).toThrowError('callback error');
+    expect(() => store.end()).toThrow('callback error');
   });
 });
