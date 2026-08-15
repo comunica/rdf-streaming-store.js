@@ -1,3 +1,5 @@
+// Node-targeted package; the EventEmitter type is required by RDF.Sink.
+// eslint-disable-next-line import/no-nodejs-modules
 import type { EventEmitter } from 'node:events';
 import type * as RDF from '@rdfjs/types';
 import { Store } from 'n3';
