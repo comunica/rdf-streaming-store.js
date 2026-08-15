@@ -6,15 +6,15 @@ import type { PassThrough } from 'readable-stream';
 /**
  * A PendingStreamsIndex stores pending streams indexed by the quad pattern they have been created for.
  */
-export class PendingStreamsIndex<Q extends RDF.BaseQuad = RDF.Quad> {
-  private static readonly ID_VARIABLE = '?';
-  private static readonly ID_SEPARATOR = ':';
+export class PendingStreamsIndex<TQ extends RDF.BaseQuad = RDF.Quad> {
+  private static readonly idVariable = '?';
+  private static readonly idSeparator = ':';
 
   public readonly indexedStreams = new Map<string, PassThrough[]>();
   public readonly allStreams: PassThrough[] = [];
 
   protected termToString(term?: RDF.Term | null): string {
-    return term && term.termType !== 'Variable' ? termToString(term) : PendingStreamsIndex.ID_VARIABLE;
+    return term && term.termType !== 'Variable' ? termToString(term) : PendingStreamsIndex.idVariable;
   }
 
   /**
@@ -36,9 +36,9 @@ export class PendingStreamsIndex<Q extends RDF.BaseQuad = RDF.Quad> {
     this.allStreams.push(pendingStream);
 
     // Append to index of pendingStreams
-    const key = `${this.termToString(subject)}${PendingStreamsIndex.ID_SEPARATOR}${
-      this.termToString(predicate)}${PendingStreamsIndex.ID_SEPARATOR}${
-      this.termToString(object)}${PendingStreamsIndex.ID_SEPARATOR}${
+    const key = `${this.termToString(subject)}${PendingStreamsIndex.idSeparator}${
+      this.termToString(predicate)}${PendingStreamsIndex.idSeparator}${
+      this.termToString(object)}${PendingStreamsIndex.idSeparator}${
       this.termToString(graph)}`;
     let existingListeners = this.indexedStreams.get(key);
     if (!existingListeners) {
@@ -52,7 +52,7 @@ export class PendingStreamsIndex<Q extends RDF.BaseQuad = RDF.Quad> {
    * Find all the pending streams from which their quad pattern match the given quad.
    * @param quad The quad to match patterns to.
    */
-  public getPendingStreamsForQuad(quad: Q): PassThrough[] {
+  public getPendingStreamsForQuad(quad: TQ): PassThrough[] {
     // Determine the combinations of quad patterns to look up
     let keys: string[][] = [ getTerms(quad).map(term => termToString(term)) ];
     for (let i = 0; i < QUAD_TERM_NAMES.length; i++) {
@@ -61,7 +61,7 @@ export class PendingStreamsIndex<Q extends RDF.BaseQuad = RDF.Quad> {
       for (const key of keysOld) {
         keys.push(key);
         const keyModified = [ ...key ];
-        keyModified[i] = PendingStreamsIndex.ID_VARIABLE;
+        keyModified[i] = PendingStreamsIndex.idVariable;
         keys.push(keyModified);
       }
     }
@@ -69,7 +69,7 @@ export class PendingStreamsIndex<Q extends RDF.BaseQuad = RDF.Quad> {
     // Fetch the pendingStreams for the quad pattern combinations
     const pendingStreams = [];
     for (const key of keys) {
-      const found = this.indexedStreams.get(key.join(PendingStreamsIndex.ID_SEPARATOR));
+      const found = this.indexedStreams.get(key.join(PendingStreamsIndex.idSeparator));
       if (found) {
         pendingStreams.push(...found);
       }
