@@ -1,4 +1,6 @@
-import type { EventEmitter } from 'events';
+// This is a type-only import, so it does not introduce a runtime dependency on Node.js builtins.
+// eslint-disable-next-line import/no-nodejs-modules
+import type { EventEmitter } from 'node:events';
 import type * as RDF from '@rdfjs/types';
 import { Store } from 'n3';
 import { Readable, PassThrough } from 'readable-stream';
@@ -6,7 +8,7 @@ import { PendingStreamsIndex } from './PendingStreamsIndex';
 
 type ListenerCallback = () => void;
 
-interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
+interface ILocalStore<TQ extends RDF.BaseQuad> extends RDF.Store<TQ> {
   countQuads: (
     subject: RDF.Term | null,
     predicate: RDF.Term | null,
@@ -24,15 +26,15 @@ interface ILocalStore<Q extends RDF.BaseQuad> extends RDF.Store<Q> {
  *
  * WARNING: `end()` MUST be called at some point, otherwise all `match` streams will remain unended.
  */
-export class StreamingStore<Q extends RDF.BaseQuad = RDF.Quad, S extends ILocalStore<Q> = Store<Q>>
-implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
-  protected readonly store: S;
-  protected readonly pendingStreams: PendingStreamsIndex<Q> = new PendingStreamsIndex();
+export class StreamingStore<TQ extends RDF.BaseQuad = RDF.Quad, TS extends ILocalStore<TQ> = Store<TQ>>
+implements RDF.Source<TQ>, RDF.Sink<RDF.Stream<TQ>, EventEmitter> {
+  protected readonly store: TS;
+  protected readonly pendingStreams: PendingStreamsIndex<TQ> = new PendingStreamsIndex();
   protected ended = false;
   protected listeners: ListenerCallback[] = [];
 
-  public constructor(store: RDF.Store<Q> = new Store<Q>()) {
-    this.store = <S> store;
+  public constructor(store: RDF.Store<TQ> = new Store<TQ>()) {
+    this.store = <TS> store;
   }
 
   public addEndListener(listener: ListenerCallback): void {
@@ -66,8 +68,8 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     this.emitEndEvent();
   }
 
-  protected importToListeners(stream: RDF.Stream<Q>): void {
-    stream.on('data', (quad: Q) => {
+  protected importToListeners(stream: RDF.Stream<TQ>): void {
+    stream.on('data', (quad: TQ) => {
       if (!this.ended && !this.store.countQuads(
         quad.subject,
         quad.predicate,
@@ -89,7 +91,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     });
   }
 
-  protected static async * concatStreams(readables: Readable[]): AsyncIterableIterator<any> {
+  protected static async* concatStreams(readables: Readable[]): AsyncIterableIterator<any> {
     for (const readable of readables) {
       for await (const chunk of readable) {
         yield chunk;
@@ -97,7 +99,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     }
   }
 
-  public import(stream: RDF.Stream<Q>): EventEmitter {
+  public import(stream: RDF.Stream<TQ>): EventEmitter {
     if (this.ended) {
       throw new Error('Attempted to import into an ended StreamingStore');
     }
@@ -111,9 +113,9 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
     predicate?: RDF.Term | null,
     object?: RDF.Term | null,
     graph?: RDF.Term | null,
-  ): RDF.Stream<Q> {
+  ): RDF.Stream<TQ> {
     const storeResult: Readable = <Readable> this.store.match(subject, predicate, object, graph);
-    let stream: RDF.Stream<Q> = storeResult;
+    let stream: RDF.Stream<TQ> = storeResult;
 
     // If the store hasn't ended yet, also create a new pendingStream
     if (!this.ended) {
@@ -121,7 +123,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       const pendingStream = new PassThrough({ objectMode: true });
       this.pendingStreams.addPatternListener(pendingStream, subject, predicate, object, graph);
       stream = Readable.from(StreamingStore.concatStreams([ storeResult, pendingStream ]));
-      pendingStream.on('quad', quad => {
+      pendingStream.on('quad', (quad) => {
         stream.emit('quad', quad);
       });
       (<any> stream)._pipeSource = storeResult;
@@ -129,7 +131,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
       // This is an ugly hack to annotate pendingStream with the isInitialized once the store stream started being read.
       // This is necessary to avoid duplicate quads cases where match() is called but not yet read, an import is done,
       // and only then the match() stream is read.
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+      // eslint-disable-next-line ts/unbound-method
       const readOld = storeResult._read;
       storeResult._read = (size: number) => {
         (<any> pendingStream).isInitialized = true;
@@ -142,8 +144,7 @@ implements RDF.Source<Q>, RDF.Sink<RDF.Stream<Q>, EventEmitter> {
   /**
    * The internal store with all imported quads.
    */
-  public getStore(): S {
+  public getStore(): TS {
     return this.store;
   }
 }
-

@@ -1,7 +1,16 @@
 {
   "name": "rdf-streaming-store",
   "version": "2.1.1",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "description": "A read-only RDF/JS store that allows parallel data lookup and insertion.",
+  "typings": "index",
+  "author": "Maarten Vandenbrande <maarten.vandenbrande@ugent.be>",
+  "license": "MIT",
+  "homepage": "https://github.com/comunica/rdf-streaming-store.js#readme",
+  "repository": "git@github.com:comunica/rdf-streaming-store.js.git",
+  "bugs": {
+    "url": "https://github.com/comunica/rdf-streaming-store.js/issues"
+  },
   "keywords": [
     "rdf",
     "rdfjs",
@@ -11,30 +20,32 @@
     "streaming"
   ],
   "main": "index.js",
-  "typings": "index",
-  "repository": "git@github.com:comunica/rdf-streaming-store.js.git",
-  "author": "Maarten Vandenbrande <maarten.vandenbrande@ugent.be>",
-  "bugs": {
-    "url": "https://github.com/comunica/rdf-streaming-store.js/issues"
-  },
-  "homepage": "https://github.com/comunica/rdf-streaming-store.js#readme",
-  "license": "MIT",
   "files": [
+    "index.d.ts",
+    "index.js",
+    "index.js.map",
     "lib/**/*.d.ts",
     "lib/**/*.js",
-    "lib/**/*.js.map",
-    "index.d.ts",
-    "index.js.map",
-    "index.js"
+    "lib/**/*.js.map"
   ],
+  "scripts": {
+    "test": "jest ${1}",
+    "test-watch": "jest ${1} --watch",
+    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
+    "lint": "eslint . --cache",
+    "build": "tsc",
+    "validate": "npm ls",
+    "prepare": "npm run build",
+    "version": "manual-git-changelog onversion"
+  },
   "dependencies": {
-    "n3": "^1.16.3",
-    "rdf-terms": "^2.0.0",
-    "rdf-string": "^2.0.0",
-    "readable-stream": "^4.3.0",
     "@rdfjs/types": "*",
     "@types/n3": "^1.10.4",
-    "@types/readable-stream": "^4.0.23"
+    "@types/readable-stream": "^4.0.23",
+    "n3": "^1.16.3",
+    "rdf-string": "^2.0.0",
+    "rdf-terms": "^2.0.0",
+    "readable-stream": "^4.3.0"
   },
   "pre-commit": [
     "build",
@@ -42,18 +53,16 @@
     "test"
   ],
   "devDependencies": {
-    "@rubensworks/eslint-config": "^1.1.0",
+    "@rubensworks/eslint-config": "^3.1.0",
     "@types/jest": "^30.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
     "arrayify-stream": "^2.0.1",
     "coveralls": "^3.0.0",
-    "eslint": "^8.32.0",
+    "eslint": "^8.57.0",
+    "event-emitter-promisify": "^1.1.0",
     "jest": "^30.0.0",
     "jest-rdf": "^2.0.0",
     "manual-git-changelog": "^1.0.0",
     "pre-commit": "^2.0.0",
-    "event-emitter-promisify": "^1.1.0",
     "rdf-data-factory": "^2.0.1",
     "rdf-quad": "^2.0.0",
     "streamify-array": "^1.0.1",
@@ -85,18 +94,7 @@
       }
     }
   },
-  "scripts": {
-    "test": "jest ${1}",
-    "test-watch": "jest ${1} --watch",
-    "coveralls": "jest --coverage && cat ./coverage/lcov.info | coveralls",
-    "lint": "eslint . --ext .ts --cache",
-    "build": "tsc",
-    "validate": "npm ls",
-    "prepare": "npm run build",
-    "version": "manual-git-changelog onversion"
-  },
   "resolutions": {
     "@types/rdf-js": "4.0.1"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }
