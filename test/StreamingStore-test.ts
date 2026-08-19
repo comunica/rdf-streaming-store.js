@@ -5,9 +5,9 @@ import { promisifyEventEmitter } from 'event-emitter-promisify/dist';
 import { Store } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
 import { Readable, PassThrough } from 'readable-stream';
+import { streamifyArray } from 'streamify-array';
 import { StreamingStore } from '../lib/StreamingStore';
 const quad = require('rdf-quad');
-const streamifyArray = require('streamify-array');
 
 const DF = new DataFactory();
 
