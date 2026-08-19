@@ -1,6 +1,6 @@
 import 'jest-rdf';
 import type * as RDF from '@rdfjs/types';
-import arrayifyStream from 'arrayify-stream';
+import { arrayifyStream } from 'arrayify-stream';
 import { promisifyEventEmitter } from 'event-emitter-promisify/dist';
 import { Store } from 'n3';
 import { DataFactory } from 'rdf-data-factory';
